@@ -1,0 +1,201 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>سباق الحروف</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=Noto+Naskh+Arabic:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<style>
+/* Layout: one column — scoreboard strip, answer slate (filled in order), scattered tile tray below */
+:root {
+  --bg: #eef3f1;
+  --surface: #ffffff;
+  --ink: #12302b;
+  --muted: #5d736e;
+  --slate: #1d4a42;
+  --slate-ink: #e9f4ef;
+  --tile: #f3c552;
+  --tile-edge: #c9952a;
+  --tile-ink: #3a2706;
+  --good: #2f8f5b;
+  --bad: #c7432f;
+  --line: #d3dfdb;
+  --display: "Reem Kufi", "Noto Naskh Arabic", sans-serif;
+  --letter: "Noto Naskh Arabic", "Amiri", serif;
+  --ui: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1d1b; --surface: #16292600; --ink: #e4efec; --muted: #93aaa4;
+  --slate: #0a2b26; --slate-ink: #d9f0e7; --tile: #e8b944; --tile-edge: #9c7019; --tile-ink: #2b1c03;
+  --good: #4cc07f; --bad: #ef6b55; --line: #284541; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1d1b; --surface: #16292600; --ink: #e4efec; --muted: #93aaa4;
+  --slate: #0a2b26; --slate-ink: #d9f0e7; --tile: #e8b944; --tile-edge: #9c7019; --tile-ink: #2b1c03;
+  --good: #4cc07f; --bad: #ef6b55; --line: #284541; color-scheme: dark }
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--ui); padding-inline: 16px; padding-block: 20px 32px; }
+.wrap { max-width: 760px; margin-inline: auto; display: grid; gap: 18px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.9rem, 6vw, 2.6rem); margin: 0; line-height: 1.1; text-wrap: balance; }
+.sub { margin: 4px 0 0; color: var(--muted); font-size: .95rem; }
+.modes { display: flex; gap: 6px; flex-wrap: wrap; }
+.modes button { font: 600 .9rem var(--ui); padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { border-block-end: 2px solid var(--line); padding-block: 6px; }
+.stat span { display: block; font-size: .75rem; color: var(--muted); letter-spacing: .02em; }
+.stat b { font: 700 1.6rem var(--display); font-variant-numeric: tabular-nums; direction: ltr; display: inline-block; }
+.stat.timer b { color: var(--ink); }
+.stat.timer.pen b { color: var(--bad); }
+
+.slate { background: var(--slate); color: var(--slate-ink); border-radius: 14px; padding: 16px; min-height: 120px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; box-shadow: inset 0 0 0 6px color-mix(in srgb, var(--slate) 70%, #000); }
+.slot { width: 44px; height: 52px; display: grid; place-items: center; font: 700 1.7rem/1 var(--letter); border-bottom: 2px dashed color-mix(in srgb, var(--slate-ink) 35%, transparent); }
+.slot.filled { border-bottom-color: transparent; animation: chalk .35s ease-out; }
+.slot.next { border-bottom: 2px solid var(--tile); }
+@keyframes chalk { from { opacity: 0; transform: translateY(-8px) scale(1.2); } }
+
+.hint { min-height: 1.4em; font-size: .95rem; color: var(--muted); text-align: center; margin: 0; }
+.hint.bad { color: var(--bad); font-weight: 600; }
+
+.tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 10px; }
+.tile { aspect-ratio: 1; max-width: 100%; border: 0; border-radius: 12px; background: var(--tile); color: var(--tile-ink); font: 700 2rem/1 var(--letter); cursor: pointer; box-shadow: 0 4px 0 var(--tile-edge); transition: transform .08s, opacity .25s; touch-action: manipulation; }
+.tile:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--tile-edge); }
+.tile:focus-visible, .modes button:focus-visible, .cta:focus-visible { outline: 3px solid var(--good); outline-offset: 3px; }
+.tile.used { opacity: 0; pointer-events: none; }
+.tile.wrong { animation: shake .3s; background: var(--bad); color: #fff; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+.cta { justify-self: center; font: 700 1.05rem var(--display); padding: 12px 34px; border-radius: 12px; border: 0; background: var(--ink); color: var(--bg); cursor: pointer; }
+
+.result { text-align: center; display: grid; gap: 6px; padding: 18px; border: 2px solid var(--good); border-radius: 14px; }
+.result h2 { font: 700 1.6rem var(--display); margin: 0; color: var(--good); }
+.result p { margin: 0; }
+.best { color: var(--muted); font-size: .9rem; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@media (max-width: 420px) { .slot { width: 36px; height: 44px; font-size: 1.4rem; } .tile { font-size: 1.7rem; } }
+</style>
+
+<div class="wrap" dir="rtl" lang="ar">
+  <header>
+    <div>
+      <h1>سباق الحروف</h1>
+      <p class="sub">اضغط الحروف بترتيب الأبجدية من «أ» إلى «ي» بأسرع وقت. الخطأ يضيف ثانيتين.</p>
+    </div>
+    <div class="modes" role="group" aria-label="عدد الحروف">
+      <button id="m7" data-n="7">٧ حروف</button>
+      <button id="m14" data-n="14">١٤ حرفًا</button>
+      <button id="m28" data-n="28" aria-pressed="true">كل الحروف</button>
+    </div>
+  </header>
+
+  <div class="board">
+    <div class="stat timer" id="timerBox"><span>الوقت</span><b id="time">0.0</b></div>
+    <div class="stat"><span>الحروف</span><b id="count">0 / 28</b></div>
+    <div class="stat"><span>الأخطاء</span><b id="errs">0</b></div>
+  </div>
+
+  <div class="slate" id="slate" aria-live="polite"></div>
+  <p class="hint" id="hint">اضغط «ابدأ» ثم اختر الحرف «ا» أولًا.</p>
+  <div class="tray" id="tray"></div>
+  <div id="result" hidden></div>
+  <button class="cta" id="start">ابدأ</button>
+</div>
+
+<script>
+const ABC = ["ا","ب","ت","ث","ج","ح","خ","د","ذ","ر","ز","س","ش","ص","ض","ط","ظ","ع","غ","ف","ق","ك","ل","م","ن","ه","و","ي"];
+const NAMES = ["ألف","باء","تاء","ثاء","جيم","حاء","خاء","دال","ذال","راء","زاي","سين","شين","صاد","ضاد","طاء","ظاء","عين","غين","فاء","قاف","كاف","لام","ميم","نون","هاء","واو","ياء"];
+const $ = id => document.getElementById(id);
+let n = 28, idx = 0, errs = 0, t0 = 0, penalty = 0, raf = 0, running = false;
+
+const ar = s => String(s);
+const fmt = ms => (ms / 1000).toFixed(1);
+const bestKey = () => "abc-best-" + n;
+const getBest = () => { try { return Number(localStorage.getItem(bestKey())) || 0; } catch { return 0; } };
+const setBest = v => { try { localStorage.setItem(bestKey(), v); } catch {} };
+
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function buildSlate() {
+  $("slate").innerHTML = "";
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement("div");
+    s.className = "slot" + (i === 0 && running ? " next" : "");
+    s.id = "s" + i;
+    $("slate").appendChild(s);
+  }
+}
+
+function buildTray(preview) {
+  $("tray").innerHTML = "";
+  shuffle(ABC.slice(0, n)).forEach(ch => {
+    const b = document.createElement("button");
+    b.className = "tile"; b.textContent = ch; b.dataset.ch = ch;
+    b.setAttribute("aria-label", NAMES[ABC.indexOf(ch)]);
+    b.disabled = preview;
+    b.addEventListener("click", () => pick(b));
+    $("tray").appendChild(b);
+  });
+}
+
+function setCount() { $("count").textContent = idx + " / " + n; $("errs").textContent = errs; }
+
+function tick() {
+  $("time").textContent = fmt(performance.now() - t0 + penalty);
+  if (running) raf = requestAnimationFrame(tick);
+}
+
+function start() {
+  running = true; idx = 0; errs = 0; penalty = 0;
+  $("result").hidden = true; $("start").textContent = "إعادة";
+  buildSlate(); buildTray(false); setCount();
+  $("hint").className = "hint"; $("hint").textContent = "الحرف التالي: ألف";
+  t0 = performance.now(); cancelAnimationFrame(raf); tick();
+}
+
+function pick(b) {
+  if (!running) return;
+  if (b.dataset.ch === ABC[idx]) {
+    b.classList.add("used");
+    const s = $("s" + idx); s.textContent = b.dataset.ch; s.classList.add("filled"); s.classList.remove("next");
+    idx++; setCount();
+    if (idx === n) return finish();
+    $("s" + idx).classList.add("next");
+    $("hint").className = "hint"; $("hint").textContent = "الحرف التالي: " + NAMES[idx];
+  } else {
+    errs++; penalty += 2000; setCount();
+    b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
+    setTimeout(() => b.classList.remove("wrong"), 320);
+    $("timerBox").classList.add("pen"); setTimeout(() => $("timerBox").classList.remove("pen"), 400);
+    $("hint").className = "hint bad"; $("hint").textContent = "ليس هذا. الحرف المطلوب: " + NAMES[idx] + " (+٢ ث)";
+  }
+}
+
+function finish() {
+  running = false; cancelAnimationFrame(raf);
+  const total = performance.now() - t0 + penalty;
+  $("time").textContent = fmt(total);
+  const prev = getBest(), record = !prev || total < prev;
+  if (record) setBest(Math.round(total));
+  $("hint").className = "hint"; $("hint").textContent = "";
+  $("result").className = "result"; $("result").hidden = false;
+  $("result").innerHTML =
+    "<h2>" + (record ? "رقم قياسي جديد!" : "أحسنت!") + "</h2>" +
+    "<p>رتّبت " + n + " حرفًا في <b dir='ltr'>" + fmt(total) + "</b> ثانية مع " + errs + " " + (errs === 1 ? "خطأ" : "أخطاء") + ".</p>" +
+    "<p class='best'>أفضل وقت لهذا المستوى: <span dir='ltr'>" + fmt(record ? total : prev) + "</span> ث</p>";
+  $("start").textContent = "العب مرة أخرى";
+}
+
+document.querySelectorAll(".modes button").forEach(btn => btn.addEventListener("click", () => {
+  document.querySelectorAll(".modes button").forEach(x => x.setAttribute("aria-pressed", x === btn));
+  n = Number(btn.dataset.n); running = false; cancelAnimationFrame(raf);
+  idx = 0; errs = 0; $("time").textContent = "0.0"; $("result").hidden = true; $("start").textContent = "ابدأ";
+  const best = getBest();
+  $("hint").className = "hint";
+  $("hint").textContent = best ? "أفضل وقت لك هنا: " + fmt(best) + " ث. اضغط «ابدأ»." : "اضغط «ابدأ» ثم اختر الحرف «ا» أولًا.";
+  buildSlate(); buildTray(true); setCount();
+}));
+$("start").addEventListener("click", start);
+
+buildSlate(); buildTray(true); setCount();
+</script>
+
+</body></html>
